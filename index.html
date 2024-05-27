@@ -264,159 +264,205 @@
             <h2>Opções do Elemento: ${elementLabel}</h2>
             <label for="element-id-${elementId}">ID do Elemento:</label>
             <input type="text" id="element-id-${elementId}" onchange="updateElementId('${elementId}')">
-            <label for="element-width-${elementId}">Largura<input type="text" id="element-width-${elementId}" onchange="updateElementStyle('${elementId}', 'width')" placeholder="100px">
-            <label for="element-height-${elementId}">Altura</label>
-            <input type="text" id="element-height-${elementId}" onchange="updateElementStyle('${elementId}', 'height')" placeholder="40px">
-            <label for="element-bgcolor-${elementId}">Cor de Fundo:</label>
-            <input type="color" id="element-bgcolor-${elementId}" onchange="updateElementStyle('${elementId}', 'backgroundColor')">
-            <label for="element-left-${elementId}">Posição à Esquerda:</label>
-            <input type="text" id="element-left-${elementId}" onchange="updateElementStyle('${elementId}', 'left')" placeholder="50px">
-            <label for="element-top-${elementId}">Posição Superior:</label>
-            <input type="text" id="element-top-${elementId}" onchange="updateElementStyle('${elementId}', 'top')" placeholder="50px">
-            <button type="button" onclick="toggleGravity('${elementId}')">Toggle Gravidade</button>
-            <button type="button" onclick="deleteElement('${elementId}')">Deletar Elemento</button>
-        `;
+            <label for="element-width-${elementId}">Largura:</label>
+            <input type="text" id="element-width-${elementId}" onchange="updateElement('${elementId}')">
+            <label for="element-height-${elementId}">Altura:</label>
+            <input type="text" id="element-height-${elementId}" onchange="updateElement('${elementId}')">
+            <label for="element-color-${elementId}">Cor:</label>
+            <input type="color" id="element-color-${elementId}" onchange="updateElement('${elementId}')">
+            <label for="element-x-${elementId}">Posição X:</label><input type="text" id="element-x-${elementId}" onchange="updateElement('${elementId}')">
+            <label for="element-y-${elementId}">Posição Y:</label>
+            <input type="text" id="element-y-${elementId}" onchange="updateElement('${elementId}')">
+            <label for="element-gravity-${elementId}">Gravidade:</label>
+            <select id="element-gravity-${elementId}" onchange="toggleGravity('${elementId}')">
+                <option value="off">Desativada</option>
+                <option value="on">Ativada</option>
+            </select>
+            <button type="button" onclick="deleteElement('${elementId}')">Excluir Elemento</button>`;
         elementOptionsContainer.appendChild(elementOptions);
+
+        // Define os valores padrão para os inputs
+        document.getElementById(`element-width-${elementId}`).value = "100"; // Valor padrão para largura
+        document.getElementById(`element-height-${elementId}`).value = "40"; // Valor padrão para altura
+        document.getElementById(`element-color-${elementId}`).value = "#4caf50"; // Valor padrão para cor de fundo
+        document.getElementById(`element-x-${elementId}`).value = "50"; // Valor padrão para posição X
+        document.getElementById(`element-y-${elementId}`).value = "50"; // Valor padrão para posição Y
+        document.getElementById(`element-gravity-${elementId}`).value = "off"; // Gravidade desativada por padrão
     }
 
-    function updateElementStyle(elementId, styleProperty) {
-        var element = document.getElementById(elementId);
-        var value = document.getElementById(styleProperty + '-' + elementId).value;
-        element.style[styleProperty] = value;
-    }
+    function updateElement(elementId) {
+        var elementWidth = document.getElementById("element-width-" + elementId).value;
+        var elementHeight = document.getElementById("element-height-" + elementId).value;
+        var elementColor = document.getElementById("element-color-" + elementId).value;
+        var elementX = document.getElementById("element-x-" + elementId).value;
+        var elementY = document.getElementById("element-y-" + elementId).value;
 
-    function updateElementId(oldId) {
-        var newId = document.getElementById("element-id-" + oldId).value;
-        var element = document.getElementById(oldId);
+        var selectedElement = document.getElementById(elementId);
 
-        if (document.getElementById(newId)) {
-            alert("ID já está em uso. Escolha um ID diferente.");
-            return;
+        if (selectedElement) {
+            selectedElement.style.width = elementWidth ? elementWidth + "px" : "";
+            selectedElement.style.height = elementHeight ? elementHeight + "px" : "";
+            selectedElement.style.backgroundColor = elementColor;
+            selectedElement.style.left = elementX ? elementX + "px" : "";
+            selectedElement.style.top = elementY ? elementY + "px" : "";
         }
-
-        element.id = newId;
-
-        var option = document.querySelector("#element-select option[value='" + oldId + "']");
-        option.value = newId;
-
-        var elementOptions = document.getElementById("element-options-" + oldId);
-        elementOptions.id = "element-options-" + newId;
-
-        var inputs = elementOptions.querySelectorAll("input, label");
-        inputs.forEach(function(input) {
-            if (input.id) input.id = input.id.replace(oldId, newId);
-            if (input.htmlFor) input.htmlFor = input.htmlFor.replace(oldId, newId);
-        });
     }
 
-    function deleteElement(elementId) {
+    function updateElementId(elementId) {
+        var newElementId = document.getElementById("element-id-" + elementId).value;
+        var selectedElement = document.getElementById(elementId);
+        if (selectedElement && newElementId) {
+            selectedElement.id = newElementId;
+        }
+    }
+
+    function toggleGravity(elementId) {
+        var gravityState = document.getElementById("element-gravity-" + elementId).value;
         var element = document.getElementById(elementId);
-        element.remove();
 
-        var option = document.querySelector("#element-select option[value='" + elementId + "']");
-        option.remove();
+        if (gravityState === "on") {
+            startGravity(element);
+        } else {
+            stopGravity(element);
+        }
+    }
 
-        var elementOptions = document.getElementById("element-options-" + elementId);
-        elementOptions.remove();
+    function startGravity(element) {
+        var gravityInterval = setInterval(function() {
+            var top = parseFloat(element.style.top);
+            top += 2; // Incrementa a posição Y para simular a gravidade
+            element.style.top = top + "px";
+
+            // Verifica se o elemento ultrapassou a borda inferior da interface-screen
+            var interfaceScreen = document.getElementById("interface-screen");
+            if (top > interfaceScreen.clientHeight) {
+                clearInterval(gravityInterval);
+            }
+        }, 20);
+        element.gravityInterval = gravityInterval; // Armazena o intervalo de gravidade no próprio elemento
+    }
+
+    function stopGravity(element) {
+        if (element.gravityInterval) {
+            clearInterval(element.gravityInterval);
+            element.gravityInterval = null;
+        }
     }
 
     function showElementOptions() {
-        var elementId = document.getElementById("element-select").value;
+        var selectedElementId = document.getElementById("element-select").value;
         var elementOptions = document.querySelectorAll(".element-options");
         elementOptions.forEach(function(option) {
             option.style.display = "none";
         });
 
-        var selectedElementOptions = document.getElementById("element-options-" + elementId);
-        if (selectedElementOptions) selectedElementOptions.style.display = "block";
+        var selectedElementOptions = document.getElementById("element-options-" + selectedElementId);
+        if (selectedElementOptions) {
+            selectedElementOptions.style.display = "block";
+        }
     }
 
-    function toggleGravity(elementId) {
+    function deleteElement(elementId) {
         var element = document.getElementById(elementId);
-        if (element.gravityEnabled) {
-            clearInterval(element.gravityInterval);
-            element.gravityEnabled = false;
-        } else {
-            element.gravityEnabled = true;
-            element.gravityInterval = setInterval(function() {
-                var top = parseFloat(element.style.top);
-                if (isNaN(top)) top = 0;
-                top += 5;
-                if (top + element.offsetHeight > document.getElementById("interface-screen").clientHeight) {
-                    clearInterval(element.gravityInterval);
-                    element.gravityEnabled = false;
-                } else {
-                    element.style.top = top + "px";
+        if (element) {
+            stopGravity(element); // Para a gravidade ao excluir o elemento
+            element.remove();
+            var elementOptions = document.getElementById("element-options-" + elementId);
+            if (elementOptions) {
+                elementOptions.remove();
+            }
+            var elementSelect = document.getElementById("element-select");
+            var options = elementSelect.options;
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].value === elementId) {
+                    elementSelect.remove(i);
+                    break;
                 }
-            }, 100);
+            }
         }
     }
 
     function saveInterface() {
-        var interfaceScreen = document.getElementById("interface-screen");
-        var elements = interfaceScreen.querySelectorAll(".ui-element");
-        var data = Array.from(elements).map(function(element) {
-            return {
+        var elements = [];
+
+        // Loop pelos elementos criados e salvar suas propriedades
+        var uiElements = document.querySelectorAll(".ui-element");
+        uiElements.forEach(function(element) {
+            var elementProperties = {
                 id: element.id,
                 type: element.tagName.toLowerCase(),
-                label: element.innerHTML,
-                style: element.style.cssText
+                label: element.textContent,
+                width: element.style.width,
+                height: element.style.height,
+                color: element.style.backgroundColor,
+                x: element.style.left,
+                y: element.style.top
             };
+            elements.push(elementProperties);
         });
 
-        var textarea = document.getElementById("editor");
-        textarea.value = JSON.stringify(data, null, 2);
+        // Salvar os elementos no localStorage
+        localStorage.setItem("savedElements", JSON.stringify(elements));
+
+        alert("Interface salva com sucesso!");
     }
 
     function loadInterface() {
-        var textarea = document.getElementById("editor");
-        var data = JSON.parse(textarea.value);
+        // Limpar a tela antes de carregar os elementos salvos
+        document.getElementById("interface-screen").innerHTML = "";
+        document.getElementById("element-options-container").innerHTML = "";
+        document.getElementById("element-select").innerHTML = "";
 
-        var interfaceScreen = document.getElementById("interface-screen");
-        interfaceScreen.innerHTML = "";
+        // Obter os elementos salvos do localStorage
+        var savedElements = localStorage.getItem("savedElements");
 
-        var elementSelect = document.getElementById("element-select");
-        elementSelect.innerHTML = "";
+        if (savedElements) {
+            // Parse dos elementos salvos e criando-os na tela
+            var elements = JSON.parse(savedElements);
+            elements.forEach(function(element) {
+                var createdElement = document.createElement(element.type);
+                createdElement.classList.add("ui-element");
+                createdElement.innerHTML = element.label;
+                createdElement.id = element.id;
+                createdElement.style.width = element.width;
+                createdElement.style.height = element.height;
+                createdElement.style.backgroundColor = element.color;
+                createdElement.style.left = element.x;
+                createdElement.style.top = element.y;
 
-        data.forEach(function(item) {
-            var element;
-            if (item.type === "div") {
-                element = document.createElement("div");
-                element.classList.add("ui-element");
-                element.classList.add("cube");
-                element.innerHTML = item.label;
-            } else {
-                element = document.createElement(item.type);
-                element.classList.add("ui-element");
-                element.innerHTML = item.label;
-            }
-            element.id = item.id;
-            element.style.cssText = item.style;
+                document.getElementById("interface-screen").appendChild(createdElement);
 
-            interfaceScreen.appendChild(element);
+                var elementSelect = document.getElementById("element-select");
+                var option = document.createElement("option");
+                option.value = element.id;
+                option.text = element.label;
+                elementSelect.add(option);
 
-            var option = document.createElement("option");
-            option.value = item.id;
-            option.text = item.label;
-            elementSelect.add(option);
-
-            addElementEventListeners(element, item.id, item.label);
-        });
-    }
-
-    document.getElementById("save-button").addEventListener("click", saveInterface);
-    document.getElementById("load-button").addEventListener("click", loadInterface);
-
-    function toggleFullScreen() {
-        var elem = document.documentElement;
-        if (!document.fullscreenElement) {
-            elem.requestFullscreen().catch(err => {
-                alert(`Erro ao tentar ativar o modo de tela cheia: ${err.message} (${err.name})`);
+                addElementEventListeners(createdElement, element.id, element.label);
             });
+
+            alert("Interface carregada com sucesso!");
         } else {
-            document.exitFullscreen();
+            alert("Nenhuma interface salva encontrada!");
         }
     }
+
+    function toggleFullScreen() {
+        var element = document.getElementById("interface-screen");
+        if (!document.fullscreenElement) {
+            element.requestFullscreen().catch(err => {
+                alert(`Erro ao tentar entrar em modo de tela cheia: ${err.message}`);
+            });
+            document.getElementById("fullscreen-button").innerText = "play";
+        } else {
+            document.exitFullscreen();
+            document.getElementById("fullscreen-button").innerText = "play";
+        }
+    }
+
+    // Adicionando eventos de clique aos botões de salvar e carregar
+    document.getElementById("save-button").addEventListener("click", saveInterface);
+    document.getElementById("load-button").addEventListener("click", loadInterface);
 </script>
 </body>
 </html>
